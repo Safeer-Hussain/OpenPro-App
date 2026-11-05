@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/utils/app_feedback.dart';
 import '../../../../domain/entities/job_entity.dart';
 import '../../viewmodels/job_feed_viewmodel.dart';
+import 'salary_distribution_card.dart';
 import 'package:provider/provider.dart';
 
 class SmartApplyModal extends StatefulWidget {
@@ -145,6 +146,8 @@ class _SmartApplyModalState extends State<SmartApplyModal> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                SalaryDistributionCard(job: widget.job),
                 const SizedBox(height: 16),
                 Text(
                   'Tailored Cover Pitch *',

@@ -26,7 +26,7 @@ The engineering assistant shall:
 ## 25-Day Autonomous Engineering Sprints
 
 ### Sprint 01: Salary Band Percentile Calculator
-- [ ] **Task Definition:** Implement an interactive salary compensation percentile estimator that compares a candidate's target compensation against market percentiles (25th, 50th, 75th, 90th) based on role, seniority, and location.
+- [x] **Task Definition:** Implement an interactive salary compensation percentile estimator that compares a candidate's target compensation against market percentiles (25th, 50th, 75th, 90th) based on role, seniority, and location.
 - **Scope:** `lib/domain/calculators/salary_percentile_calculator.dart`, `lib/presentation/jobs/widgets/salary_distribution_card.dart`.
 - **Acceptance Criteria:**
   - Computes 25th, 50th, 75th, and 90th percentile salary benchmarks for Junior, Mid, Senior, Lead, and Principal tiers.
