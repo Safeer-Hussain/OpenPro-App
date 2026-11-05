@@ -35,11 +35,37 @@ class AppDatabase {
       path = p.join(docDir.path, 'openpro_app.db');
     }
 
-    return await openDatabase(
+    final db = await openDatabase(
       path,
       version: 1,
       onCreate: _onCreate,
     );
+
+    await _ensureTables(db);
+    return db;
+  }
+
+  Future<void> _ensureTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ${DatabaseTables.skillEndorsements} (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        skill_name TEXT NOT NULL,
+        endorser_name TEXT NOT NULL,
+        endorser_title TEXT NOT NULL,
+        endorser_avatar TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        is_endorsed_by_me INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
+    final countResult = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM ${DatabaseTables.skillEndorsements}',
+    );
+    final count = countResult.isNotEmpty ? (countResult.first['count'] as int? ?? 0) : 0;
+    if (count == 0) {
+      await _seedSkillEndorsements(db);
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -765,6 +791,97 @@ Selector<JobFeedProvider, bool>(
         'Simulate Technical Interview Question',
       ]),
     });
+
+    await _seedSkillEndorsements(db);
+  }
+
+  Future<void> _seedSkillEndorsements(Database db) async {
+    final endorsements = [
+      {
+        'id': 'end_1',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Flutter & Dart Architecture',
+        'endorser_name': 'Alex Rivera',
+        'endorser_title': 'Staff Mobile Architect @ TechCorp Labs',
+        'endorser_avatar': AssetPaths.techcorpLogo,
+        'created_at': '2 days ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_2',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Flutter & Dart Architecture',
+        'endorser_name': 'Sarah Chen',
+        'endorser_title': 'Principal Systems Engineer @ CloudScale',
+        'endorser_avatar': AssetPaths.cloudscaleLogo,
+        'created_at': '3 days ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_3',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Flutter & Dart Architecture',
+        'endorser_name': 'Marcus Vance',
+        'endorser_title': 'VP Engineering @ FinTech Prime',
+        'endorser_avatar': AssetPaths.fintechPrimeLogo,
+        'created_at': '1 week ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_4',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Clean Architecture & SOLID',
+        'endorser_name': 'Dr. Aris Thorne',
+        'endorser_title': 'Chief AI Scientist @ QuantumAI Labs',
+        'endorser_avatar': AssetPaths.quantumAiLogo,
+        'created_at': '4 days ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_5',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Clean Architecture & SOLID',
+        'endorser_name': 'Liam Sterling',
+        'endorser_title': 'Cloud DevOps Lead @ HealthFlow',
+        'endorser_avatar': AssetPaths.healthflowLogo,
+        'created_at': '5 days ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_6',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'State Management (Provider/Riverpod)',
+        'endorser_name': 'Sarah Chen',
+        'endorser_title': 'Principal Systems Engineer @ CloudScale',
+        'endorser_avatar': AssetPaths.cloudscaleLogo,
+        'created_at': '1 week ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_7',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'High-Performance Concurrency',
+        'endorser_name': 'Alex Rivera',
+        'endorser_title': 'Staff Mobile Architect @ TechCorp Labs',
+        'endorser_avatar': AssetPaths.techcorpLogo,
+        'created_at': '2 weeks ago',
+        'is_endorsed_by_me': 0,
+      },
+      {
+        'id': 'end_8',
+        'user_id': AppConstants.defaultUserId,
+        'skill_name': 'Offline-First SQLite Systems',
+        'endorser_name': 'Marcus Vance',
+        'endorser_title': 'VP Engineering @ FinTech Prime',
+        'endorser_avatar': AssetPaths.fintechPrimeLogo,
+        'created_at': '3 days ago',
+        'is_endorsed_by_me': 0,
+      },
+    ];
+
+    for (final e in endorsements) {
+      await db.insert(DatabaseTables.skillEndorsements, e);
+    }
   }
 
   Future<void> resetDatabase() async {
@@ -779,6 +896,7 @@ Selector<JobFeedProvider, bool>(
     await db.delete(DatabaseTables.experiences);
     await db.delete(DatabaseTables.projects);
     await db.delete(DatabaseTables.chatMessages);
+    await db.delete(DatabaseTables.skillEndorsements);
     await _seedInitialData(db);
   }
 }

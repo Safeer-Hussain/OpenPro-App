@@ -1,18 +1,27 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/services/service_locator.dart';
 import '../../../data/repositories/profile_repository.dart';
+import '../../../data/repositories/skill_repository.dart';
+import '../../../domain/entities/skill_endorsement.dart';
 import '../../../domain/entities/user_profile_entity.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final ProfileRepository repository;
+  final SkillRepository? skillRepository;
 
   UserProfileEntity? _profile;
+  List<SkillEndorsement> _endorsements = [];
   bool _isLoading = true;
 
-  ProfileViewModel({required this.repository}) {
+  ProfileViewModel({
+    required this.repository,
+    SkillRepository? skillRepository,
+  })  : skillRepository = skillRepository ?? (sl.isRegistered<SkillRepository>() ? sl<SkillRepository>() : null) {
     loadProfile();
   }
 
   UserProfileEntity? get profile => _profile;
+  List<SkillEndorsement> get endorsements => _endorsements;
   bool get isLoading => _isLoading;
 
   Future<void> loadProfile() async {
@@ -20,9 +29,71 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       _profile = await repository.getUserProfile();
+      if (_profile != null && skillRepository != null) {
+        _endorsements = await skillRepository!.getEndorsementsForUser(_profile!.id);
+      }
     } catch (_) {}
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> loadEndorsements([String? userId]) async {
+    if (skillRepository == null) return;
+    final targetId = userId ?? _profile?.id;
+    if (targetId == null) return;
+    try {
+      _endorsements = await skillRepository!.getEndorsementsForUser(targetId);
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> toggleEndorsement(String skillName) async {
+    if (_profile == null) return;
+
+    final index = _endorsements.indexWhere((e) => e.skillName == skillName);
+    if (index == -1) return;
+
+    final current = _endorsements[index];
+    final newIsEndorsed = !current.isEndorsedByMe;
+    final newCount = newIsEndorsed ? current.count + 1 : (current.count - 1).clamp(0, 9999);
+
+    final updatedTopEndorsers = List<Endorser>.from(current.topEndorsers);
+    if (newIsEndorsed) {
+      updatedTopEndorsers.insert(
+        0,
+        const Endorser(
+          id: 'me',
+          name: 'You',
+          title: 'Verified Peer',
+          avatarUrl: 'assets/images/safeer_avatar.png',
+        ),
+      );
+    } else {
+      updatedTopEndorsers.removeWhere((e) => e.id == 'me' || e.name == 'You');
+    }
+
+    final updatedItem = current.copyWith(
+      isEndorsedByMe: newIsEndorsed,
+      count: newCount,
+      topEndorsers: updatedTopEndorsers,
+    );
+
+    _endorsements[index] = updatedItem;
+    notifyListeners();
+
+    if (skillRepository != null) {
+      try {
+        final synced = await skillRepository!.toggleEndorsement(
+          userId: _profile!.id,
+          skillName: skillName,
+          endorserName: 'You',
+          endorserTitle: 'Verified Peer',
+          endorserAvatar: 'assets/images/safeer_avatar.png',
+        );
+        _endorsements[index] = synced;
+        notifyListeners();
+      } catch (_) {}
+    }
   }
 
   Future<void> toggleOpenToWork() async {

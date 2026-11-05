@@ -4,6 +4,7 @@ import 'package:open_pro/data/repositories/ai_assistant_repository.dart';
 import 'package:open_pro/data/repositories/community_repository.dart';
 import 'package:open_pro/data/repositories/job_repository.dart';
 import 'package:open_pro/data/repositories/profile_repository.dart';
+import 'package:open_pro/data/repositories/skill_repository.dart';
 import 'package:open_pro/data/repositories/social_repository.dart';
 import 'package:open_pro/domain/entities/chat_message_entity.dart';
 import 'package:open_pro/domain/entities/comment_entity.dart';
@@ -11,6 +12,7 @@ import 'package:open_pro/domain/entities/event_entity.dart';
 import 'package:open_pro/domain/entities/group_entity.dart';
 import 'package:open_pro/domain/entities/job_entity.dart';
 import 'package:open_pro/domain/entities/post_entity.dart';
+import 'package:open_pro/domain/entities/skill_endorsement.dart';
 import 'package:open_pro/domain/entities/story_entity.dart';
 import 'package:open_pro/domain/entities/user_profile_entity.dart';
 
@@ -417,5 +419,119 @@ class MockProfileRepository extends ProfileRepository {
   Future<void> addProject(ProjectEntity project) async {
     final updated = List<ProjectEntity>.from(inMemoryProfile.projects)..insert(0, project);
     inMemoryProfile = inMemoryProfile.copyWith(projects: updated);
+  }
+}
+
+class MockSkillRepository extends SkillRepository {
+  List<SkillEndorsement> inMemoryEndorsements;
+
+  MockSkillRepository({List<SkillEndorsement>? endorsements})
+      : inMemoryEndorsements = endorsements ??
+            [
+              const SkillEndorsement(
+                skillName: 'Flutter & Dart Architecture',
+                count: 3,
+                isEndorsedByMe: false,
+                topEndorsers: [
+                  Endorser(
+                    id: 'end_1',
+                    name: 'Alex Rivera',
+                    title: 'Staff Mobile Architect @ TechCorp Labs',
+                    avatarUrl: 'assets/images/techcorp.png',
+                  ),
+                  Endorser(
+                    id: 'end_2',
+                    name: 'Sarah Chen',
+                    title: 'Principal Systems Engineer @ CloudScale',
+                    avatarUrl: 'assets/images/cloudscale.png',
+                  ),
+                  Endorser(
+                    id: 'end_3',
+                    name: 'Marcus Vance',
+                    title: 'VP Engineering @ FinTech Prime',
+                    avatarUrl: 'assets/images/fintech_prime.png',
+                  ),
+                ],
+              ),
+              const SkillEndorsement(
+                skillName: 'Clean Architecture & SOLID',
+                count: 2,
+                isEndorsedByMe: true,
+                topEndorsers: [
+                  Endorser(
+                    id: 'end_4',
+                    name: 'Dr. Aris Thorne',
+                    title: 'Chief AI Scientist @ QuantumAI Labs',
+                    avatarUrl: 'assets/images/quantum_ai.png',
+                  ),
+                  Endorser(
+                    id: 'end_me',
+                    name: 'You',
+                    title: 'Verified Peer',
+                    avatarUrl: 'assets/images/safeer_avatar.png',
+                  ),
+                ],
+              ),
+            ],
+        super(database: AppDatabase.instance);
+
+  @override
+  Future<List<SkillEndorsement>> getEndorsementsForUser([String userId = 'usr_safeer_001']) async {
+    return List.from(inMemoryEndorsements);
+  }
+
+  @override
+  Future<SkillEndorsement> toggleEndorsement({
+    required String userId,
+    required String skillName,
+    required String endorserName,
+    required String endorserTitle,
+    required String endorserAvatar,
+  }) async {
+    final idx = inMemoryEndorsements.indexWhere((e) => e.skillName == skillName);
+    if (idx == -1) {
+      final newEndorsement = SkillEndorsement(
+        skillName: skillName,
+        count: 1,
+        isEndorsedByMe: true,
+        topEndorsers: [
+          Endorser(
+            id: 'end_new',
+            name: endorserName,
+            title: endorserTitle,
+            avatarUrl: endorserAvatar,
+          ),
+        ],
+      );
+      inMemoryEndorsements.add(newEndorsement);
+      return newEndorsement;
+    }
+
+    final curr = inMemoryEndorsements[idx];
+    final nextStatus = !curr.isEndorsedByMe;
+    final nextCount = nextStatus ? curr.count + 1 : curr.count - 1;
+    final endorsers = List<Endorser>.from(curr.topEndorsers);
+
+    if (nextStatus) {
+      endorsers.insert(
+        0,
+        Endorser(
+          id: 'end_me',
+          name: endorserName,
+          title: endorserTitle,
+          avatarUrl: endorserAvatar,
+        ),
+      );
+    } else {
+      endorsers.removeWhere((e) => e.id == 'end_me' || e.name == endorserName);
+    }
+
+    final updated = curr.copyWith(
+      isEndorsedByMe: nextStatus,
+      count: nextCount,
+      topEndorsers: endorsers,
+    );
+    inMemoryEndorsements[idx] = updated;
+    return updated;
   }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import 'widgets/developer_debug_drawer.dart';
 import 'widgets/edit_profile_modal.dart';
+import 'widgets/endorsed_skills_section.dart';
 import 'widgets/experience_timeline.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/recruiter_analytics_card.dart';
@@ -54,6 +55,7 @@ class ProfileView extends StatelessWidget {
           ProfileHeader(profile: profile),
           RecruiterAnalyticsCard(profile: profile),
           SkillsCloud(skills: profile.skills),
+          const EndorsedSkillsSection(),
           ExperienceTimeline(
             experiences: profile.experiences,
             projects: profile.projects,
@@ -76,6 +78,7 @@ class ProfileView extends StatelessWidget {
               children: [
                 ProfileHeader(profile: profile),
                 SkillsCloud(skills: profile.skills),
+                const EndorsedSkillsSection(),
               ],
             ),
           ),

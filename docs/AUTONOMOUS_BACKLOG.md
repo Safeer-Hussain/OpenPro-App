@@ -34,7 +34,7 @@ The engineering assistant shall:
   - Full unit test coverage in `test/unit/salary_percentile_calculator_test.dart`.
 
 ### Sprint 02: Interactive Skill Endorsement Graph
-- [ ] **Task Definition:** Build a peer skill endorsement system where connections can endorse specific skills, incrementing endorsement counts and displaying avatar clusters of top endorsers.
+- [x] **Task Definition:** Build a peer skill endorsement system where connections can endorse specific skills, incrementing endorsement counts and displaying avatar clusters of top endorsers.
 - **Scope:** `lib/domain/entities/skill_endorsement.dart`, `lib/data/repositories/skill_repository.dart`, `lib/presentation/profile/widgets/endorsed_skills_section.dart`.
 - **Acceptance Criteria:**
   - Persists endorsements to SQLite `skill_endorsements` table with user foreign keys.

@@ -7,6 +7,7 @@ import '../../data/repositories/ai_assistant_repository.dart';
 import '../../data/repositories/community_repository.dart';
 import '../../data/repositories/job_repository.dart';
 import '../../data/repositories/profile_repository.dart';
+import '../../data/repositories/skill_repository.dart';
 import '../../data/repositories/social_repository.dart';
 
 final sl = GetIt.instance;
@@ -37,6 +38,9 @@ Future<void> setupServiceLocator() async {
 
   final profileRepo = ProfileRepository(database: database);
   sl.registerSingleton<ProfileRepository>(profileRepo);
+
+  final skillRepo = SkillRepository(database: database);
+  sl.registerSingleton<SkillRepository>(skillRepo);
 
   final aiRepo = AiAssistantRepository(
     database: database,
